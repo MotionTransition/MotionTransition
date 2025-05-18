@@ -1,0 +1,250 @@
+wandb_version: 1
+
+model_path:
+  desc: null
+  value: ''
+eval_mode:
+  desc: null
+  value: wo_mm
+guidance_param:
+  desc: null
+  value: 2.5
+impute_until:
+  desc: null
+  value: null
+skip_first:
+  desc: null
+  value: null
+eval_use_avg:
+  desc: null
+  value: true
+full_traj_inpaint:
+  desc: null
+  value: false
+save_dir:
+  desc: null
+  value: save/unet_adazero_xl_x0_abs_loss1_fp16_clipwd_224
+overwrite:
+  desc: null
+  value: false
+batch_size:
+  desc: null
+  value: 64
+train_platform_type:
+  desc: null
+  value: NoPlatform
+lr:
+  desc: null
+  value: 0.0001
+weight_decay:
+  desc: null
+  value: 0.01
+grad_clip:
+  desc: null
+  value: 1.0
+use_fp16:
+  desc: null
+  value: true
+avg_model_beta:
+  desc: null
+  value: 0.9999
+adam_beta2:
+  desc: null
+  value: 0.999
+lr_anneal_steps:
+  desc: null
+  value: 0
+eval_batch_size:
+  desc: null
+  value: 32
+eval_split:
+  desc: null
+  value: test
+eval_during_training:
+  desc: null
+  value: false
+eval_rep_times:
+  desc: null
+  value: 3
+eval_num_samples:
+  desc: null
+  value: 1000
+log_interval:
+  desc: null
+  value: 1000
+save_interval:
+  desc: null
+  value: 50000
+num_steps:
+  desc: null
+  value: 1200000
+num_frames:
+  desc: null
+  value: 224
+resume_checkpoint:
+  desc: null
+  value: ''
+apply_zero_mask:
+  desc: null
+  value: false
+traj_extra_weight:
+  desc: null
+  value: 1.0
+time_weighted_loss:
+  desc: null
+  value: false
+train_x0_as_eps:
+  desc: null
+  value: false
+styenc_dir:
+  desc: null
+  value: null
+noise_schedule:
+  desc: null
+  value: cosine
+diffusion_steps:
+  desc: null
+  value: 1000
+sigma_small:
+  desc: null
+  value: true
+predict_xstart:
+  desc: null
+  value: true
+use_ddim:
+  desc: null
+  value: false
+clip_range:
+  desc: null
+  value: 6.0
+dataset:
+  desc: null
+  value: permo
+data_dir:
+  desc: null
+  value: ''
+abs_3d:
+  desc: null
+  value: true
+traj_only:
+  desc: null
+  value: false
+xz_only:
+  desc: null
+  value: false
+use_random_proj:
+  desc: null
+  value: false
+random_proj_scale:
+  desc: null
+  value: 10.0
+augment_type:
+  desc: null
+  value: none
+std_scale_shift:
+  desc: null
+  value:
+  - 1.0
+  - 0.0
+drop_redundant:
+  desc: null
+  value: false
+only_text:
+  desc: null
+  value: true
+arch:
+  desc: null
+  value: unet
+emb_trans_dec:
+  desc: null
+  value: false
+layers:
+  desc: null
+  value: 8
+latent_dim:
+  desc: null
+  value: 512
+ff_size:
+  desc: null
+  value: 1024
+dim_mults:
+  desc: null
+  value:
+  - 2
+  - 2
+  - 2
+  - 2
+unet_adagn:
+  desc: null
+  value: true
+unet_zero:
+  desc: null
+  value: true
+out_mult:
+  desc: null
+  value: false
+cond_mask_prob:
+  desc: null
+  value: 0.1
+keyframe_mask_prob:
+  desc: null
+  value: 0.1
+lambda_rcxyz:
+  desc: null
+  value: 0.0
+lambda_vel:
+  desc: null
+  value: 0.0
+lambda_fc:
+  desc: null
+  value: 0.0
+unconstrained:
+  desc: null
+  value: false
+keyframe_conditioned:
+  desc: null
+  value: true
+keyframe_selection_scheme:
+  desc: null
+  value: random_frames
+zero_keyframe_loss:
+  desc: null
+  value: false
+cuda:
+  desc: null
+  value: true
+device:
+  desc: null
+  value: 0
+seed:
+  desc: null
+  value: 10
+_wandb:
+  desc: null
+  value:
+    python_version: 3.7.10
+    cli_version: 0.16.1
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1747573407.030014
+    t:
+      1:
+      - 1
+      - 33
+      - 41
+      - 55
+      2:
+      - 1
+      - 33
+      - 41
+      - 55
+      3:
+      - 15
+      - 16
+      - 23
+      4: 3.7.10
+      5: 0.16.1
+      8:
+      - 5
+      13: linux-x86_64

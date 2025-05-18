@@ -56,9 +56,9 @@ def get_model_args(args: FullModelOptions, data: DataLoader):
         cond_mode = 'style'
     elif args.dataset == 'permo':
         # 使用style作为条件就写style，使用文本作为条件就写text，既不用style也不用text就写no_cond
-        cond_mode = 'style'
+        # cond_mode = 'style'
         # cond_mode = 'text'
-        # cond_mode = 'no_cond'
+        cond_mode = 'no_cond'
     else:
         cond_mode = 'action'
     if hasattr(data.dataset, 'num_actions'):

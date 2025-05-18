@@ -1,0 +1,113 @@
+{'abs_3d': True,
+ 'adam_beta2': 0.999,
+ 'apply_zero_mask': False,
+ 'arch': 'unet',
+ 'augment_type': 'none',
+ 'avg_model_beta': 0.9999,
+ 'batch_size': 64,
+ 'clip_range': 6.0,
+ 'cond_mask_prob': 0.1,
+ 'cuda': True,
+ 'data_dir': '',
+ 'dataset': 'permo',
+ 'device': 0,
+ 'diffusion_steps': 1000,
+ 'dim_mults': (2, 2, 2, 2),
+ 'drop_redundant': False,
+ 'emb_trans_dec': False,
+ 'eval_batch_size': 32,
+ 'eval_during_training': False,
+ 'eval_mode': 'wo_mm',
+ 'eval_num_samples': 1000,
+ 'eval_rep_times': 3,
+ 'eval_split': 'test',
+ 'eval_use_avg': True,
+ 'ff_size': 1024,
+ 'full_traj_inpaint': False,
+ 'grad_clip': 1.0,
+ 'guidance_param': 2.5,
+ 'impute_until': None,
+ 'keyframe_conditioned': True,
+ 'keyframe_mask_prob': 0.1,
+ 'keyframe_selection_scheme': 'random_frames',
+ 'lambda_fc': 0.0,
+ 'lambda_rcxyz': 0.0,
+ 'lambda_vel': 0.0,
+ 'latent_dim': 512,
+ 'layers': 8,
+ 'log_interval': 1000,
+ 'lr': 0.0001,
+ 'lr_anneal_steps': 0,
+ 'model_path': './pretrain/model000550000.pt',
+ 'noise_schedule': 'cosine',
+ 'num_frames': 224,
+ 'num_steps': 1200000,
+ 'only_text': True,
+ 'out_mult': False,
+ 'overwrite': False,
+ 'predict_xstart': True,
+ 'random_proj_scale': 10.0,
+ 'resume_checkpoint': '',
+ 'save_dir': 'save/d59ma7k5',
+ 'save_interval': 10000,
+ 'seed': 10,
+ 'sigma_small': True,
+ 'skip_first': None,
+ 'std_scale_shift': (1.0, 0.0),
+ 'styenc_dir': None,
+ 'time_weighted_loss': False,
+ 'train_platform_type': 'NoPlatform',
+ 'train_x0_as_eps': False,
+ 'traj_extra_weight': 1.0,
+ 'traj_only': False,
+ 'unconstrained': False,
+ 'unet_adagn': True,
+ 'unet_zero': True,
+ 'use_ddim': False,
+ 'use_fp16': True,
+ 'use_random_proj': False,
+ 'weight_decay': 0.01,
+ 'xz_only': False,
+ 'zero_keyframe_loss': False}
+creating data loader...
+Reading ././dataset/permo_opt.txt
+WARNING: max_motion_length is set to 224
+Loading dataset permo ...
+mode = text_only
+t2m dataset aug: none std_scale_shift: (1.0, 0.0)
+t2m dataset drop redundant information: False
+Pointer Pointing at 0
+creating model and diffusion...
+Using UNET with lantent dim:  512  and mults:  (2, 2, 2, 2)
+dims:  [263, 1024, 1024, 1024, 1024] mults:  (2, 2, 2, 2)
+[ models/temporal ] Channel dimensions: [(263, 1024), (1024, 1024), (1024, 1024), (1024, 1024)]
+100%|█████████████████████████████████████████████████████████████████| 4186/4186 [00:01<00:00, 2225.07it/s]
+  0%|                                                                                | 0/64 [00:01<?, ?it/s]
+Traceback (most recent call last):
+  File "train/train_condmdi.py", line 95, in <module>
+    main()
+  File "train/train_condmdi.py", line 90, in main
+    TrainLoop(args, model, diffusion, data).run_loop()
+  File "/root/autodl-tmp/MotionTransition3/MotionTransition/train/training_loop.py", line 255, in run_loop
+    self.run_step(motion, cond)
+  File "/root/autodl-tmp/MotionTransition3/MotionTransition/train/training_loop.py", line 333, in run_step
+    self.forward_backward(batch, cond)
+  File "/root/autodl-tmp/MotionTransition3/MotionTransition/train/training_loop.py", line 409, in forward_backward
+    losses = compute_losses()
+  File "/root/autodl-tmp/MotionTransition3/MotionTransition/diffusion/respace.py", line 101, in training_losses
+    return super().training_losses(self._wrap_model(model), *args, **kwargs)
+  File "/root/autodl-tmp/MotionTransition3/MotionTransition/diffusion/gaussian_diffusion.py", line 2041, in training_losses
+    model_output = model(x_t, self._scale_timesteps(t), **model_kwargs)
+  File "/root/autodl-tmp/MotionTransition3/MotionTransition/diffusion/respace.py", line 133, in __call__
+    return self.model(x, new_ts, **kwargs)
+  File "/root/miniconda3/envs/CondMDI/lib/python3.7/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/root/autodl-tmp/MotionTransition3/MotionTransition/model/mdm_unet.py", line 796, in forward
+    return self.forward_core(x, timesteps, y)
+  File "/root/autodl-tmp/MotionTransition3/MotionTransition/model/mdm_unet.py", line 908, in forward_core
+    enc_style = self.style_encoder(y['style_motion'], y['style_motion_lengths'])*y['style_mask']
+KeyError: 'style_motion'
+Total params: 248.13M
+Training...
+train steps: 1200000
+Starting epoch 0

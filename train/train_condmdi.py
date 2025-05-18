@@ -1,6 +1,9 @@
 # This code is based on https://github.com/openai/guided-diffusion,
 # and is used to train a diffusion model on human motion sequences.
 
+import sys
+sys.path.append('/root/autodl-tmp')
+
 import os
 import sys
 import json
@@ -73,6 +76,8 @@ def main():
 
     print("creating model and diffusion...")
     model, diffusion = create_model_and_diffusion(args, data)
+    if args.model_path.endswith('.pt'):
+        load_saved_model(model, args.model_path)
     model.to(dist_util.dev())
     model.rot2xyz.smpl_model.eval()
 

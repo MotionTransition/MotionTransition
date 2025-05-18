@@ -2025,20 +2025,39 @@ class GaussianDiffusion:
             # model_output, output_style_enc, ms_enc = model(x_t, self._scale_timesteps(t), **model_kwargs)
             if 'motion_t' in model_kwargs['y'] and 'motion_s' in model_kwargs['y']:
                 # 使用风格运动作为条件时
+                # 不同风格相同序列
                 model_kwargs['y']['style_motion'] = motion_s
                 model_kwargs['y']['style_motion_lengths'] = motion_s_lengths_torch
                 model_output, enc_style_s, enc_style_outs = model(x_t, self._scale_timesteps(t), **model_kwargs)
 
+                # 同风格同序列
                 model_kwargs['y']['style_motion'] = x_start
                 model_kwargs['y']['style_motion_lengths'] = model_kwargs['y']['lengths']
                 model_output_x, enc_style_x, enc_style_outx = model(x_t, self._scale_timesteps(t), **model_kwargs)
 
+                # 相同风格不同序列
                 model_kwargs['y']['style_motion'] = motion_t
                 model_kwargs['y']['style_motion_lengths'] = motion_t_lengths_torch
                 model_output_t, enc_style_t, enc_style_outt = model(x_t, self._scale_timesteps(t), **model_kwargs)
-            else:
-                # 使用文本或者无条件时
+            else: # 使用文本或者无条件时
                 model_output = model(x_t, self._scale_timesteps(t), **model_kwargs)
+                
+                # 无条件时,计算尾帧的根关节loss值
+                # root关节为绝对位置，因此只计算最后一帧的位置
+                root_joints = torch.tensor([1, 2], device=x_start.device)
+                root_xz_i = x_start[:, root_joints, :, :]  # [B, 2, 1, T]
+                root_xz_o = model_output[:, root_joints, :, :]
+
+                B, C, _, T = root_xz_i.shape
+
+                lengths = model_kwargs['y']['lengths'].view(-1) - 1
+                frame_idx = lengths.view(B, 1, 1, 1).expand(-1, C, 1, 1)
+
+                tail_i = torch.gather(root_xz_i, dim=3, index=frame_idx).squeeze(-1).squeeze(-1)  # [B, 2]
+                tail_o = torch.gather(root_xz_o, dim=3, index=frame_idx).squeeze(-1).squeeze(-1)  # [B, 2]
+
+                diff = torch.abs(tail_i - tail_o).mean()
+                terms["last_frame_mse"] = diff
 
             if isinstance(model_output, tuple):# false
                 # model has two heads
@@ -2237,6 +2256,8 @@ class GaussianDiffusion:
                             (self.lambda_rcxyz * terms.get('rcxyz_mse', 0.)) + \
                             (self.lambda_fc * terms.get('fc', 0.)) + \
                             (0.5 * terms.get('style_loss', 0.))
+            
+            terms["loss"] = terms["loss"] * 0.8 + terms["last_frame_mse"] * 0.2;
 
             if self.conf.time_weighted_loss: # false
                 # time weighted the loss function so that the epsilon-based loss would pay more attention to T ~ 1000
