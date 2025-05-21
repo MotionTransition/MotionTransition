@@ -58,7 +58,10 @@ def get_model_args(args: FullModelOptions, data: DataLoader):
         # 使用style作为条件就写style，使用文本作为条件就写text，既不用style也不用text就写no_cond
         # cond_mode = 'style'
         # cond_mode = 'text'
-        cond_mode = 'no_cond'
+        if args.no_cond:
+            cond_mode = 'no_cond'
+        else:
+            cond_mode = 'style'
     else:
         cond_mode = 'action'
     if hasattr(data.dataset, 'num_actions'):

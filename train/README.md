@@ -29,3 +29,12 @@ nohup python train/train_condmdi.py --num_steps 100000  --save_interval 5000 --k
 在 nohup.txt 中查看 wandb 链接，并在 wandb 中结束程序运行。
 
 修改 loss 值：`diffusion/gaussian_diffusion.py`
+
+
+带风格编码器的训练
+
+```sh
+python ./train/train_condmdi.py --keyframe_conditioned --styenc_dir ./pretrained_model/style_encoder_500_000.pt --save_interval 10000
+# 后台运行
+nohup python ./train/train_condmdi.py --keyframe_conditioned --styenc_dir ./pretrained_model/style_encoder_500_000.pt --save_interval 10000 &
+```

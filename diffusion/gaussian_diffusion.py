@@ -2055,26 +2055,6 @@ class GaussianDiffusion:
                 model_output_t, enc_style_t, enc_style_outt = model(x_t, self._scale_timesteps(t), **model_kwargs)
             else: # 使用文本或者无条件时
                 model_output = model(x_t, self._scale_timesteps(t), **model_kwargs)
-                
-                # # 无条件时,计算每一帧的根关节位置对应的loss值
-                # # root关节为绝对位置，因此只计算最后一帧的位置
-                # root_joints = torch.tensor([1, 2], device=x_start.device) # [1, 2] 取根关节的x方向位移和z方向位移，参考CondDMI论文的Appendix中对数据集的说明
-                # root_joints_size = root_joints.size().numel() # 2 根关节参数的个数
-
-                # B, J, _, F = x_start.shape # 64, 263, 1, 224
-
-                # root_xz_i = x_start[:, root_joints, :, :]  # [B, 2, 1, T]
-                # root_xz_o = model_output[:, root_joints, :, :] # 同上
-                
-                # root_diff = (root_xz_i - root_xz_o) * model_kwargs['y']['mask'] # 做差，根据掩码获取有效位
-                # root_diff_sum = root_diff.sum(dim=3) # 做和，因为要除以有效长度
-                
-                # root_diff_lengths = model_kwargs['y']['lengths'].reshape(-1, 1, 1).expand(B, root_joints_size, 1) # 对有效长度数据进行扩展 [64] -> [64, 2, 1]
-                # root_diff_mean = (root_diff_sum / root_diff_lengths).mean() # 对应位相除 [64, 2, 1] / [64, 2, 1]，结果取平均
-                # root_diff_mean_abs = torch.abs(root_diff_mean) # 取绝对值
-
-                # root_joints_enlarge = 10 # loss放大系数
-                # terms["root_joints"] = root_diff_mean_abs * root_joints_enlarge
 
             if isinstance(model_output, tuple):# false
                 # model has two heads
@@ -2185,16 +2165,17 @@ class GaussianDiffusion:
                                                             time_weights=time_weights)
                 
             # 计算关键帧loss，CondMDI源码虽然有这个计算，但是最后loss求和的时候并没有加上        
-            B, J, F, T = target.shape
             # time_indices = (1, 2, 3, ..., 224) & [224] -> [64, 263, 1, 224]
-            keyFrame_time_weights_all = torch.arange(1, T+1, device=target.device, dtype=target.dtype).view(1, 1, 1, T).expand(B, J, F, T)
+            keyFrame_time_weights_all = torch.arange(1, target.shape[3]+1, device=target.device, dtype=target.dtype)\
+                                            .view(1, 1, 1, target.shape[3])\
+                                            .expand(target.shape[0], target.shape[1], target.shape[2], target.shape[3])
             # keyFrame_time_weights = torch.exp(time_indices.float()) # time_weights_single = (e**1, e**2, ..., e**224)
             # [64, 263, 1, 224] -> [64, 263, 1, num(len: mask.num)+0(len: 224 - mask.num)]
             keyFrame_time_linear_masked = keyFrame_time_weights_all * model_kwargs['y']['mask']
             #time_weights对每个batch取归一化
             # softmax归一化 
-            keyFrame_time_weights_mid = (torch.max(keyFrame_time_linear_masked, dim=-1, keepdim=True)[0])/2
-            keyFrame_time_weights = keyFrame_time_linear_masked / keyFrame_time_weights_mid
+            keyFrame_time_weights_masked_mid = (torch.max(keyFrame_time_linear_masked, dim=-1, keepdim=True)[0])/2
+            keyFrame_time_weights_masked = keyFrame_time_linear_masked / keyFrame_time_weights_masked_mid
             # keyFrame_time_weights = torch.nn.functional.softmax(keyFrame_time_weights, dim=-1, dtype=target.dtype)
             # print(keyFrame_time_weights.tolist())
             # or sum normalization
@@ -2204,19 +2185,54 @@ class GaussianDiffusion:
                 return x[:, root_joints, :, :]
 
             if enc.keyframe_conditioned:
-                # Compute the loss over the keyframes for logging
-                obs_mask = mask * model_kwargs['obs_mask']
-                keyframes_l1 = self.masked_l1_keyFrame(
-                    get_root_joints(target),
-                    get_root_joints(model_output), 
-                    lengths=model_kwargs['y']['lengths'],
-                    time_weights=get_root_joints(keyFrame_time_weights), 
-                    over_keyframes=True
-                )
+                # 使用风格运动作为条件时
+                if 'motion_t' in model_kwargs['y'] and 'motion_s' in model_kwargs['y']:
+                    time_weights_masked = get_root_joints(keyFrame_time_weights_masked)
+
+                    # 不同风格相同序列的根关节loss
+                    keyframes_xs_l1 = self.masked_l1_keyFrame(
+                        get_root_joints(target),
+                        get_root_joints(model_output), 
+                        lengths=model_kwargs['y']['lengths'],
+                        time_weights=time_weights_masked,
+                        over_keyframes=True
+                    )
+
+                    # 相同风格相同序列的根关节loss
+                    keyframes_x_l1 = self.masked_l1_keyFrame(
+                        get_root_joints(target),
+                        get_root_joints(model_output_x), 
+                        lengths=model_kwargs['y']['lengths'],
+                        time_weights=time_weights_masked,
+                        over_keyframes=True
+                    )
+
+                    # 相同风格不同序列的根关节loss
+                    keyframes_xt_l1 = self.masked_l1_keyFrame(
+                        get_root_joints(target),
+                        get_root_joints(model_output_t), 
+                        lengths=model_kwargs['y']['lengths'],
+                        time_weights=time_weights_masked, 
+                        over_keyframes=True
+                    )
+
+                    # 计算三个loss的均值
+                    terms["keyframes_l1"] = (keyframes_xs_l1+keyframes_x_l1+keyframes_xt_l1)/3
+
+                else: # 使用文本或者无条件时
+
+                    keyframes_l1 = self.masked_l1_keyFrame(
+                        get_root_joints(target),
+                        get_root_joints(model_output), 
+                        lengths=model_kwargs['y']['lengths'],
+                        time_weights=get_root_joints(keyFrame_time_weights_masked), 
+                        over_keyframes=True
+                    )
+                    terms["keyframes_l1"] = keyframes_l1
+
             #     keyframes_mse2 = self.masked_l2_weighted(target, x_self, obs_mask, weights=weights, time_weights=time_weights, over_keyframes=True)
             #     keyframes_mse3 = self.masked_l2_weighted(target, x_tt, obs_mask, weights=weights, time_weights=time_weights, over_keyframes=True)
                 # terms["keyframes_mse"] = (keyframes_mse1+keyframes_mse2+keyframes_mse3)/3
-                terms["keyframes_l1"] = keyframes_l1
 
             target_xyz, model_output_xyz = None, None
 
@@ -2301,7 +2317,8 @@ class GaussianDiffusion:
             
             alpha, beta = 0.5, 5
             # print(f'\n\ntotal loss: {terms["loss"]}\n\nkeyframe loss: {terms["keyframes_mse"]}')
-            terms["loss"] = terms["loss"] * alpha + terms["keyframes_l1"] * beta * ( 1 - alpha )
+            if enc.keyframe_conditioned:
+                terms["loss"] = terms["loss"] * alpha + terms["keyframes_l1"] * beta * ( 1 - alpha )
 
             if self.conf.time_weighted_loss: # false
                 # time weighted the loss function so that the epsilon-based loss would pay more attention to T ~ 1000

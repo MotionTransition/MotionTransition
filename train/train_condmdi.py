@@ -57,20 +57,35 @@ def main():
     dist_util.setup_dist(args.device)
 
     print("creating data loader...")
-    data_conf = DatasetConfig(
-        name=args.dataset,
-        batch_size=args.batch_size,
-        num_frames=args.num_frames,
-        use_abs3d=args.abs_3d,
-        traject_only=args.traj_only,
-        use_random_projection=args.use_random_proj,
-        random_projection_scale=args.random_proj_scale,
-        augment_type=args.augment_type,
-        std_scale_shift=args.std_scale_shift,
-        drop_redundant=args.drop_redundant,
-        only_text=args.only_text, # 不用reference style的时候加上
-        hml_mode="text_only" # 不用reference style的时候加上
-    )
+    if args.no_cond: # 区别在是否加最后两行
+        data_conf = DatasetConfig(
+            name=args.dataset,
+            batch_size=args.batch_size,
+            num_frames=args.num_frames,
+            use_abs3d=args.abs_3d,
+            traject_only=args.traj_only,
+            use_random_projection=args.use_random_proj,
+            random_projection_scale=args.random_proj_scale,
+            augment_type=args.augment_type,
+            std_scale_shift=args.std_scale_shift,
+            drop_redundant=args.drop_redundant,
+            only_text=args.only_text, # 不用reference style的时候加上
+            hml_mode="text_only" # 不用reference style的时候加上
+        )
+    else:
+        data_conf = DatasetConfig(
+            name=args.dataset,
+            batch_size=args.batch_size,
+            num_frames=args.num_frames,
+            use_abs3d=args.abs_3d,
+            traject_only=args.traj_only,
+            use_random_projection=args.use_random_proj,
+            random_projection_scale=args.random_proj_scale,
+            augment_type=args.augment_type,
+            std_scale_shift=args.std_scale_shift,
+            drop_redundant=args.drop_redundant,
+        )
+
 
     data = get_dataset_loader(data_conf)
 

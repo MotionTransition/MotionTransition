@@ -108,6 +108,10 @@ class DataOptions:
                              "choices":
                              ['humanml', 'kit', 'humanact12', 'uestc', 'amass']
                          })
+    no_cond: bool = field(default=False,
+                           metadata={
+                               "help": "If True, will not import style encoder."
+                           })
     data_dir: str = field(
         default="",
         metadata={
