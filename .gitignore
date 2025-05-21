@@ -6,5 +6,6 @@
 /visualize/
 /save/
 **/__pycache__/*
-/wandb/**
+/wandb/
 nohup.out
+/pretrained_model/

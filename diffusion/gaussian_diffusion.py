@@ -2206,7 +2206,7 @@ class GaussianDiffusion:
             if enc.keyframe_conditioned:
                 # Compute the loss over the keyframes for logging
                 obs_mask = mask * model_kwargs['obs_mask']
-                keyframes_mse = self.masked_l1_keyFrame(
+                keyframes_l1 = self.masked_l1_keyFrame(
                     get_root_joints(target),
                     get_root_joints(model_output), 
                     lengths=model_kwargs['y']['lengths'],
@@ -2216,7 +2216,7 @@ class GaussianDiffusion:
             #     keyframes_mse2 = self.masked_l2_weighted(target, x_self, obs_mask, weights=weights, time_weights=time_weights, over_keyframes=True)
             #     keyframes_mse3 = self.masked_l2_weighted(target, x_tt, obs_mask, weights=weights, time_weights=time_weights, over_keyframes=True)
                 # terms["keyframes_mse"] = (keyframes_mse1+keyframes_mse2+keyframes_mse3)/3
-                terms["keyframes_mse"] = keyframes_mse
+                terms["keyframes_l1"] = keyframes_l1
 
             target_xyz, model_output_xyz = None, None
 
@@ -2301,7 +2301,7 @@ class GaussianDiffusion:
             
             alpha, beta = 0.5, 5
             # print(f'\n\ntotal loss: {terms["loss"]}\n\nkeyframe loss: {terms["keyframes_mse"]}')
-            terms["loss"] = terms["loss"] * alpha + terms["keyframes_mse"] * beta * ( 1 - alpha )
+            terms["loss"] = terms["loss"] * alpha + terms["keyframes_l1"] * beta * ( 1 - alpha )
 
             if self.conf.time_weighted_loss: # false
                 # time weighted the loss function so that the epsilon-based loss would pay more attention to T ~ 1000
