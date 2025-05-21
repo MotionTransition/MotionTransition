@@ -4,7 +4,6 @@
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "name": "MotionTransition模型训练 无风格编码器",
             "type": "debugpy",
@@ -14,19 +13,15 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
-
-        
-            
-            // 训练无风格模型
             "args": [
-                "--model_path", "./save/58vr7z2p/model000020000.pt",
-                "--save_interval", "10000",
+                "--model_path",
+                "./save/58vr7z2p/model000020000.pt",
+                "--save_interval",
+                "10000",
                 "--keyframe_conditioned",
                 "--only_text"
             ]
         },
-        
-
         {
             "name": "MotionTransition模型预测 种子123456",
             "type": "debugpy",
@@ -36,19 +31,22 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
-
-            
             "args": [
-                "--model_path", "./save/apac61dq/model000100000.pt",
-                "--edit_mode", "inbetween",
-                "--transition_length", "1",
-                "--num_samples", "6",
-                "--num_repetitions", "3",
+                "--model_path",
+                "./save/apac61dq/model000100000.pt",
+                "--edit_mode",
+                "inbetween",
+                "--transition_length",
+                "1",
+                "--num_samples",
+                "6",
+                "--num_repetitions",
+                "3",
                 "--no_text",
-                "--seed", "123456",
+                "--seed",
+                "123456",
             ]
         },
-
         {
             "name": "MotionTransition模型训练 包含风格编码器",
             "type": "debugpy",
@@ -58,15 +56,15 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
-
-            
             "args": [
                 "--keyframe_conditioned",
-                "--styenc_dir", "./save/style_encoder/model000200000.pt",
-                "--model_path", "./save/58vr7z2p/model000020000.pt",
-                "--save_interval", "10000"
+                "--styenc_dir",
+                "./save/style_encoder/model000200000.pt",
+                "--model_path",
+                "./save/58vr7z2p/model000020000.pt",
+                "--save_interval",
+                "10000"
             ]
         }
     ]
 }
-

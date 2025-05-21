@@ -1,3 +1,4 @@
+
 # This code is based on https://github.com/openai/guided-diffusion
 """
 Generate a large batch of image samples from a model and save them as a large
@@ -57,6 +58,7 @@ def compute_editing_mask(data, lengths, args):
 def main():
     args = cond_synt_args()
     fixseed(args.seed)
+    args.model_path = "./save/7315fxrn/model000100000.pt"
 
     assert (args.dataset == 'humanml' or args.dataset == 'style100' or args.dataset == 'permo') and args.abs_3d # Only humanml dataset and the absolute root representation is supported for conditional synthesis
     assert args.keyframe_conditioned
