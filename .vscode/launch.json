@@ -46,7 +46,7 @@
         },
         // 预测
         {
-            "name": "MotionTransition模型预测 种子123456",
+            "name": "MotionTransition模型预测 无风格编码器 种子123456",
             "type": "debugpy",
             "request": "launch",
             "program": "./sample/style_synthesis.py",
@@ -74,6 +74,66 @@
                 
                 "--seed",
                 "123456",
+            ]
+        },
+        {
+            "name": "MotionTransition模型预测 风格编码器 种子123456",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "./sample/style_synthesis.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "args": [
+                "--model_path",
+                "./save/y0btny50/model000050000.pt",
+
+                "--edit_mode",
+                "inbetween",
+                
+                "--transition_length",
+                "1",
+                
+                "--num_samples",
+                "6",
+                
+                "--num_repetitions",
+                "3",
+
+                "--no_text",
+                                
+                "--seed", "123456",
+            ]
+        },
+        {
+            "name": "MotionTransition模型预测 风格编码器 种子888888",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "./sample/style_synthesis.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "args": [
+                "--model_path",
+                "./save/y0btny50/model000050000.pt",
+
+                "--edit_mode",
+                "inbetween",
+                
+                "--transition_length",
+                "1",
+                
+                "--num_samples",
+                "6",
+                
+                "--num_repetitions",
+                "3",
+
+                "--no_text",
+                                
+                "--seed", "888888",
             ]
         },
     ]
