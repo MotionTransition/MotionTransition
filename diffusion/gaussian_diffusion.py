@@ -23,6 +23,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+# forward knimatic
+from data_loaders.humanml.common.skeleton import Skeleton
+from data_loaders.humanml.common.quaternion import *
+from data_loaders.humanml.utils.paramUtil import *
+
+
 def get_named_beta_schedule(schedule_name,
                             num_diffusion_timesteps,
                             scale_betas=1.):
@@ -246,6 +252,67 @@ class GaussianDiffusion:
         self.data_get_mean_fn = None
         self.log_trajectory_fn = None
         self.triplet_loss = nn.TripletMarginLoss(margin=5, reduction='none')
+    
+    def fk_init(self, a: torch.tensor):
+        n_raw_offsets = torch.from_numpy(t2m_raw_offsets)
+        skeleton = Skeleton(n_raw_offsets, t2m_kinematic_chain, a.device)
+        return skeleton
+
+
+    def fk_weighted(self, a: torch.tensor, b: torch.tensor, model_kwargs):
+        device = a.device
+        batch, joints, _, frames = a.shape
+
+        motion_inf = {
+            'x_global_st': 0,
+            'x_global_ed': 4,
+        }
+
+        motion_inf['x_pos_st'] = motion_inf['x_global_ed']
+        motion_inf['x_pos_ed'] = motion_inf['x_global_ed'] + 21 * 3
+
+        motion_inf['x_rot_st'] = motion_inf['x_pos_ed']
+        motion_inf['x_rot_ed'] = motion_inf['x_pos_ed'] + 21 * 6
+
+        motion_inf['x_vec_st'] = motion_inf['x_rot_ed']
+        motion_inf['x_vec_ed'] = motion_inf['x_rot_ed'] + 22 * 3
+
+        # root 6d rotation
+        root_rot6d = torch.tensor([1,0,0, 0,1,0]).to(device).expand(batch, 1, 6)
+        loss_matrix = torch.zeros(batch, frames).to(device)
+        skeleton = self.fk_init(a)
+        for i in range(frames):
+
+            a_frame = a[..., i]
+            b_frame = b[..., i]
+
+
+            b_6d = torch.cat([
+                root_rot6d, 
+                b_frame[:, motion_inf['x_rot_st']:motion_inf['x_rot_ed'], :].reshape(batch, -1, 6)
+            ], dim=1).to(device)
+
+            b_6d[:, 1:] = b_6d[:, 1:] + 1e-8 # 防止非法数
+
+            a_root = a_frame[ :, motion_inf['x_global_st'] + 1 : motion_inf['x_global_ed']].reshape(batch, 3).to(device)
+            b_root = b_frame[ :, motion_inf['x_global_st'] + 1 : motion_inf['x_global_ed']].reshape(batch, 3).to(device)
+            a_root[:, [1, 2]] = a_root[:, [2, 1]]  # swap y and z if needed
+            b_root[:, [1, 2]] = b_root[:, [2, 1]]  # swap y and z if needed
+
+
+            skel_joints = a_frame[ :, motion_inf['x_pos_st']:motion_inf['x_pos_ed'], : ].reshape(batch, -1, 3).to(device) # joints pos
+            skel_joints = torch.cat([a_root.reshape(batch, 1, 3), skel_joints], dim=1)
+
+            Predict = skeleton.forward_kinematics_cont6d(b_6d, b_root, skel_joints=skel_joints)
+            Ground_Truth_Rel = a_frame[ :, motion_inf['x_pos_st']:motion_inf['x_pos_ed']].reshape(batch, -1, 3)
+            Ground_Truth_Glob = Ground_Truth_Rel + a_root.reshape(batch, 1, 3)
+            Ground_Truth = torch.cat([a_root.reshape(batch, 1, 3) , Ground_Truth_Glob], dim=1)
+
+            loss_matrix[:, i] = torch.abs(Predict - Ground_Truth).mean(dim=2).mean(dim=1)
+        loss_matrix = loss_matrix.reshape(batch, 1, 1, frames) * model_kwargs['y']['mask']
+        loss_matrix = loss_matrix.mean(dim=3).reshape(batch)
+        return loss_matrix
+        
 
     def masked_l2(self, a, b, mask):
         # assuming a.shape == b.shape == bs, J, Jdim, seqlen
@@ -2138,10 +2205,13 @@ class GaussianDiffusion:
 
                 terms['rot_mse'] = 0.5*loss_con1 + 0.5*loss_con2
             else:
-                terms['rot_mse'] = self.masked_l2_weighted(
-                    target, model_output, mask,
-                    weights=weights,
-                    time_weights=time_weights)
+                terms['rot_mse'] = self.fk_weighted(
+                    target, model_output, model_kwargs
+                )
+                # terms['rot_mse'] = self.masked_l2_weighted(
+                #     target, model_output, mask,
+                #     weights=weights,
+                #     time_weights=time_weights)
 
             if torch.isnan(terms["rot_mse"]).any():
                 print("rot_mse has nan!")

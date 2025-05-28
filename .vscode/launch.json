@@ -14,6 +14,16 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
         },
+        {
+            "name": "Forward Kinematics L1损失 测试",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "forward_kinematics_test_loop.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+        },
         // 训练motion模型
         {
             "name": "训练 无风格编码器",
