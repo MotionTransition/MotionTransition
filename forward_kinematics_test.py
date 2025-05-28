@@ -8,6 +8,7 @@ from data_loaders.humanml.utils.paramUtil import *
 np.set_printoptions(suppress=True)
 
 data = np.load('dataset/PerMo/new_joint_vecs_abs_3d/Angry_Hop_A01_001.npy')
+device = "cuda:0"
 
 print(data.shape)
 
@@ -36,26 +37,22 @@ identity_cont6d = np.array([1,0,0, 0,1,0])
 cont6d_params = np.concatenate(
     [[identity_cont6d], np.array(data[i][x_rot_st:x_rot_ed]).reshape(-1, 6)], axis=0
 )
-cont6d_params = np.tile(cont6d_params, (64, 1, 1))
-cont6d_params = torch.from_numpy(cont6d_params).float()
-
 
 skel_joints = np.array(data[i][x_pos_st:x_pos_ed]).reshape(-1, 3) # joints pos
 # skel_joints = skel_joints + root_pos # relative root pos to absolute pos
 skel_joints = np.concatenate(([root_pos], skel_joints), axis=0) # add root pos to joints
 
-root_pos = np.tile(root_pos, (64, 1))
 skel_joints = np.tile(skel_joints, (64, 1, 1)) # 模拟 batch size
+root_pos = np.tile(root_pos, (64, 1))
+cont6d_params = np.tile(cont6d_params, (64, 1, 1))
 
-skel_joints = torch.from_numpy(skel_joints).float()
-root_pos = torch.from_numpy(root_pos).float()
-
-
+skel_joints = torch.from_numpy(skel_joints).float().to(device)
+root_pos = torch.from_numpy(root_pos).float().to(device)
+cont6d_params = torch.from_numpy(cont6d_params).float().to(device)
 n_raw_offsets = torch.from_numpy(t2m_raw_offsets)
-kinematic_chain = t2m_kinematic_chain
 
-skeleton = Skeleton(n_raw_offsets, kinematic_chain, "cpu")
-predict_joints_pos = skeleton.forward_kinematics_cont6d(cont6d_params, root_pos, skel_joints=skel_joints)[0].numpy()
+skeleton = Skeleton(n_raw_offsets, t2m_kinematic_chain, device)
+predict_joints_pos = skeleton.forward_kinematics_cont6d(cont6d_params, root_pos, skel_joints=skel_joints)[0]
 
 # print(f'predict the positions : {predict_joints_pos}')
 
