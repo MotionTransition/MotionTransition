@@ -194,6 +194,48 @@ class Skeleton(object):
         return joints
 
 
+    # """
+    # function description
+    # input:
+    #     abs_cont6d: (batch_size(64), joints(22), 6d-Rotation(6), frames(224))
+    #     kinematic_tree: List[List[int]]
+    # output:
+    #     local_cont6d: (batch_size(64), joints(22), 6d-Rotation(6), frames(224))
+    # """
+    # def forward_kinematics_zhjh(self, abs_cont6d, root_pos):
+    #     B, J, _ = abs_cont6d.shape
+    #     device = abs_cont6d.device
+        
+    #     abs_rot = cont6d_to_matrix(abs_cont6d)  # (B, J, 3, 3)
+    #     relative_rot = abs_rot.clone()
+        
+    #     # """1. absolute 6D rotation -> relative (local) rotation"""
+    #     # abs_rot = cont6d_to_matrix(abs_cont6d)  # (B, J, 3, 3)
+    #     # relative_rot = abs_rot.clone()
+
+    #     # for chain in self._kinematic_tree:
+    #     #     for i in range(1, len(chain)):
+    #     #         parent = chain[i - 1]
+    #     #         child = chain[i]
+    #     #         R_parent = abs_rot[:, parent]   # (B, 3, 3)
+    #     #         R_child = abs_rot[:, child]
+    #     #         R_relative = torch.matmul(R_parent.transpose(-1, -2), R_child)  # (B, 3, 3)
+    #     #         relative_rot[:, child] = R_relative
+
+    #     """2. Calculate forward kinematic chain"""
+    #     offsets = self._offset.expand(B, -1, -1)
+    #     joints_pos = torch.zeros(B, J, 3).to(device)
+    #     joints_pos[..., 0, :] = root_pos
+    #     for chain in self._kinematic_tree:
+    #         matR = torch.eye(3).expand(B, 3, 3).detach().to(device)
+    #         for i in range(1, len(chain)):
+    #             matR = torch.matmul(matR, relative_rot[:, chain[i]])
+    #             offset_vec = offsets[:, chain[i]].unsqueeze(-1)
+    #             # print(matR.shape, offset_vec.shape)
+    #             joints_pos[:, chain[i]] = torch.matmul(matR, offset_vec).squeeze(-1) + joints_pos[:, chain[i-1]]
+    #     return joints_pos
+        
+        
 
 
-
+        
