@@ -9,3 +9,5 @@
 /wandb/
 nohup.out
 /pretrained_model/
+
+*.zip

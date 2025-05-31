@@ -56,7 +56,7 @@ def compute_editing_mask(data, lengths, args):
 
 
 def main():
-    args = cond_synt_args()
+    args = cond_synt_args("./save/1v4cd4o9/model000050000.pt")
     fixseed(args.seed)
 
     assert (args.dataset == 'humanml' or args.dataset == 'style100' or args.dataset == 'permo') and args.abs_3d # Only humanml dataset and the absolute root representation is supported for conditional synthesis

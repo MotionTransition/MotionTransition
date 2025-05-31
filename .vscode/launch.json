@@ -73,7 +73,7 @@
             },
             "args": [
                 "--model_path",
-                "./save/apac61dq/model000100000.pt",
+                "./save/1v4cd4o9/model000050000.pt",
                 "--edit_mode",
                 "inbetween",
                 "--transition_length",
